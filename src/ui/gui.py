@@ -80,8 +80,8 @@ class JsonEditor(QTextEdit):
 
     def set_unlocked_colors(self):
         palette = self.palette()
-        palette.setColor(self.backgroundRole(), QColor(37, 37, 37))  # Lighter dark background
-        palette.setColor(self.foregroundRole(), QColor(212, 212, 212))  # White/Light grey text color
+        palette.setColor(self.backgroundRole(), QColor(37, 37, 37)) 
+        palette.setColor(self.foregroundRole(), QColor(212, 212, 212))
         self.setPalette(palette)
 
     def search_in_json(self, term):
@@ -275,7 +275,6 @@ class MainWindow(QWidget):
         os.makedirs(USER_FOLDER, exist_ok=True)
         with open(SAVE_PATH, 'w', encoding='utf-8') as f:
             json.dump({'last_dir': path}, f)
-
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
