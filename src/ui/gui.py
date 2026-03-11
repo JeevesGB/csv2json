@@ -145,7 +145,7 @@ class MainWindow(QWidget):
         splitter.setSizes([60, 80])
         layout.addWidget(splitter)
 
-        self.status = QLabel("Ready — select folder or load JSON")
+        self.status = QLabel("Ready")
         layout.addWidget(self.status)
 
         btns = QHBoxLayout()
