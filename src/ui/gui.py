@@ -17,8 +17,8 @@ try:
 except ModuleNotFoundError:
     sys.exit(1)
 
-USER_FOLDER = os.path.join(script_dir, 'user')  # The 'user' folder will store the save file.
-SAVE_PATH = os.path.join(USER_FOLDER, 'save.sve')  # Save path for the last used directory.
+USER_FOLDER = os.path.join(script_dir, 'user')  
+SAVE_PATH = os.path.join(USER_FOLDER, 'save.sve') 
 
 class JsonHighlighter(QSyntaxHighlighter):
     def __init__(self, parent):
@@ -119,7 +119,7 @@ class MainWindow(QWidget):
 
         self.json_path = None
         self.edited = False
-        self.last_dir = self.load_last_dir()  # Load the last used directory
+        self.last_dir = self.load_last_dir() 
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(12, 12, 12, 12)
@@ -191,7 +191,7 @@ class MainWindow(QWidget):
         if not out:
             return
         self.last_dir = os.path.dirname(out)
-        self.save_last_dir(self.last_dir)  # Save the new last directory
+        self.save_last_dir(self.last_dir) 
         self.status.setText("Merging…")
         QApplication.processEvents()
         try:
@@ -211,8 +211,8 @@ class MainWindow(QWidget):
         path, _ = QFileDialog.getOpenFileName(self, "Open JSON", self.last_dir, "JSON (*.json)")
         if path:
             self._load_json(path)
-            self.last_dir = os.path.dirname(path)  # Update last directory
-            self.save_last_dir(self.last_dir)  # Save the new last directory
+            self.last_dir = os.path.dirname(path)  
+            self.save_last_dir(self.last_dir)  
 
     def _load_json(self, path):
         try:
@@ -264,7 +264,7 @@ class MainWindow(QWidget):
             self.edited = True
 
     def load_last_dir(self):
-        os.makedirs(USER_FOLDER, exist_ok=True)  # Ensure the 'user' folder exists
+        os.makedirs(USER_FOLDER, exist_ok=True)  
         if os.path.exists(SAVE_PATH):
             try:
                 with open(SAVE_PATH, encoding='utf-8') as f:
@@ -272,12 +272,12 @@ class MainWindow(QWidget):
                     return data.get('last_dir', '')
             except Exception as e:
                 print(f"Error loading last directory: {e}")
-        return ''  # Return empty string if no previous directory is found
+        return ''  
 
     def save_last_dir(self, path):
-        os.makedirs(USER_FOLDER, exist_ok=True)  # Ensure the 'user' folder exists
+        os.makedirs(USER_FOLDER, exist_ok=True)  
         with open(SAVE_PATH, 'w', encoding='utf-8') as f:
-            json.dump({'last_dir': path}, f)  # Save the last directory as JSON
+            json.dump({'last_dir': path}, f) 
 
 
 if __name__ == '__main__':
