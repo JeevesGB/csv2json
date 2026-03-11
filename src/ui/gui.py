@@ -7,6 +7,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, QRegularExpression
 from PyQt6.QtGui import QIcon, QTextCharFormat, QColor, QFont, QSyntaxHighlighter, QTextCursor
+
 script_dir = os.path.dirname(os.path.abspath(__file__))
 src_dir = os.path.join(script_dir, '..', '..', 'src')
 sys.path.insert(0, src_dir)
@@ -16,9 +17,8 @@ try:
 except ModuleNotFoundError:
     sys.exit(1)
 
-USER_FOLDER = os.path.join(script_dir,'user')
-SAVE_PATH = os.path.join('util/ *.sve')
-
+USER_FOLDER = os.path.join(script_dir, 'user')  # The 'user' folder will store the save file.
+SAVE_PATH = os.path.join(USER_FOLDER, 'save.sve')  # Save path for the last used directory.
 
 class JsonHighlighter(QSyntaxHighlighter):
     def __init__(self, parent):
@@ -115,11 +115,11 @@ class MainWindow(QWidget):
         self.setWindowTitle("CSV → JSON Converter")
         self.resize(1600, 950)
 
-        icon_path = os.path.join(script_dir,'util/icon.png')
+        icon_path = os.path.join(script_dir, 'util/icon.png')
 
         self.json_path = None
         self.edited = False
-        self.last_dir = self.load_last_dir()
+        self.last_dir = self.load_last_dir()  # Load the last used directory
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(12, 12, 12, 12)
@@ -191,7 +191,7 @@ class MainWindow(QWidget):
         if not out:
             return
         self.last_dir = os.path.dirname(out)
-        self.save_last_dir(self.last_dir)
+        self.save_last_dir(self.last_dir)  # Save the new last directory
         self.status.setText("Merging…")
         QApplication.processEvents()
         try:
@@ -211,6 +211,8 @@ class MainWindow(QWidget):
         path, _ = QFileDialog.getOpenFileName(self, "Open JSON", self.last_dir, "JSON (*.json)")
         if path:
             self._load_json(path)
+            self.last_dir = os.path.dirname(path)  # Update last directory
+            self.save_last_dir(self.last_dir)  # Save the new last directory
 
     def _load_json(self, path):
         try:
@@ -262,19 +264,21 @@ class MainWindow(QWidget):
             self.edited = True
 
     def load_last_dir(self):
-        os.makedirs(USER_FOLDER, exist_ok=True)
+        os.makedirs(USER_FOLDER, exist_ok=True)  # Ensure the 'user' folder exists
         if os.path.exists(SAVE_PATH):
             try:
                 with open(SAVE_PATH, encoding='utf-8') as f:
-                    return json.load(f).get('last_dir', '')
-            except:
-                pass
-        return ''
+                    data = json.load(f)
+                    return data.get('last_dir', '')
+            except Exception as e:
+                print(f"Error loading last directory: {e}")
+        return ''  # Return empty string if no previous directory is found
 
     def save_last_dir(self, path):
-        os.makedirs(USER_FOLDER, exist_ok=True)
+        os.makedirs(USER_FOLDER, exist_ok=True)  # Ensure the 'user' folder exists
         with open(SAVE_PATH, 'w', encoding='utf-8') as f:
-            json.dump({'last_dir': path}, f)
+            json.dump({'last_dir': path}, f)  # Save the last directory as JSON
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
