@@ -112,18 +112,28 @@ class JsonEditor(QTextEdit):
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("CSV → JSON Converter")
-        self.resize(1600, 950)
+        self.setWindowTitle("CSV → JSON")
+        self.resize(900, 900)
+        self.setMinimumSize(800, 800)
+        self.setMaximumSize(1920,1080)
 
-        icon_path = os.path.join(script_dir, 'util/icon.png')
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(os.path.abspath(__file__)) 
+
+        icon_path = os.path.join(project_root, '..', 'util', 'icon.ico')
+
+        if os.path.exists(icon_path):
+            self.setWindowIcon(QIcon(icon_path))
+        else:
+            print(f"Icon not found at {icon_path}")
 
         self.json_path = None
         self.edited = False
         self.last_dir, self.last_json_dir = self.load_last_dirs() 
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(12, 12, 12, 12)
-        layout.setSpacing(8)
+        layout.setContentsMargins(5, 5, 5, 5)
+        layout.setSpacing(5)
 
         splitter = QSplitter(Qt.Orientation.Vertical)
         splitter.setChildrenCollapsible(False)
@@ -132,7 +142,7 @@ class MainWindow(QWidget):
         self.editor.textChanged.connect(self.mark_edited)
         splitter.addWidget(self.editor)
 
-        splitter.setSizes([160, 800])
+        splitter.setSizes([60, 80])
         layout.addWidget(splitter)
 
         self.status = QLabel("Ready — select folder or load JSON")
@@ -143,12 +153,12 @@ class MainWindow(QWidget):
 
         for txt, cb, color in [
             ("Convert CSVs", self.convert_folder, "#4a90e2"),
-            ("Load JSON", self.load_json, "#50c878"),
+            ("Load JSON", self.load_json, "#a650c8"),
             ("Unlock Edit", self.toggle_edit, "#e74c3c"),
             ("Save", self.save_edited, "#f39c12"),
         ]:
             b = QPushButton(txt)
-            b.setFixedSize(200, 44)
+            b.setFixedSize(100, 30)
             b.setStyleSheet(f"background: {color}; color: white; border-radius: 5px;")
             b.clicked.connect(cb)
             btns.addWidget(b)
@@ -160,7 +170,7 @@ class MainWindow(QWidget):
             QWidget {
                 background: #1e1e1e;
                 color: #e0e0e0;
-                font-family: "Segoe UI", sans-serif;
+                font-family: "System";
             }
             QTextEdit {
                 background: #252526;
