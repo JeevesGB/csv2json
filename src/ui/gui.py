@@ -3,7 +3,7 @@ import os
 import json
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QPushButton, QVBoxLayout, QFileDialog,
-    QLabel, QListWidget, QHBoxLayout, QTextEdit, QSplitter
+    QLabel, QHBoxLayout, QTextEdit, QSplitter
 )
 from PyQt6.QtCore import Qt, QRegularExpression
 from PyQt6.QtGui import QIcon, QTextCharFormat, QColor, QFont, QSyntaxHighlighter, QTextCursor
@@ -119,7 +119,7 @@ class MainWindow(QWidget):
 
         self.json_path = None
         self.edited = False
-        self.last_dir = self.load_last_dir() 
+        self.last_dir, self.last_json_dir = self.load_last_dirs() 
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(12, 12, 12, 12)
@@ -184,20 +184,29 @@ class MainWindow(QWidget):
         """)
 
     def convert_folder(self):
+        # Set default folder to last used directory (CSV folder)
         folder = QFileDialog.getExistingDirectory(self, "Select folder with CSVs", self.last_dir)
-        if not folder:
+    
+        if not folder:  # User canceled folder selection
             return
-        out, _ = QFileDialog.getSaveFileName(self, "Save JSON", self.last_dir, "JSON (*.json)")
-        if not out:
+    
+        # Save the selected folder as the last used directory
+        self.last_dir = folder
+        self.save_last_dirs(self.last_dir, self.last_json_dir)  # Save the folder for future use
+    
+        # Ask user where to save the output JSON file
+        out, _ = QFileDialog.getSaveFileName(self, "Convert", self.last_json_dir, "JSON (*.json)")
+    
+        if not out:  # User canceled save
             return
-        self.last_dir = os.path.dirname(out)
-        self.save_last_dir(self.last_dir) 
+    
         self.status.setText("Merging…")
         QApplication.processEvents()
+    
         try:
-            merge_csv_to_json(folder, out)
+            merge_csv_to_json(folder, out)  # Merge CSV to JSON
             self.status.setText(f"Saved: {os.path.basename(out)}")
-            self.update_file_list(folder)
+            self.update_file_list(folder)  # Update file list with saved JSONs
         except Exception as e:
             self.status.setText(f"Error: {e}")
 
@@ -208,11 +217,11 @@ class MainWindow(QWidget):
                 self.file_list.addItem(name)
 
     def load_json(self):
-        path, _ = QFileDialog.getOpenFileName(self, "Open JSON", self.last_dir, "JSON (*.json)")
+        path, _ = QFileDialog.getOpenFileName(self, "Open JSON", self.last_json_dir, "JSON (*.json)")
         if path:
             self._load_json(path)
-            self.last_dir = os.path.dirname(path)  
-            self.save_last_dir(self.last_dir)  
+            self.last_json_dir = os.path.dirname(path)  # Update last JSON save directory
+            self.save_last_dirs(self.last_dir, self.last_json_dir)  # Save both paths
 
     def _load_json(self, path):
         try:
@@ -221,8 +230,8 @@ class MainWindow(QWidget):
             self.editor.setText(text)
             self.json_path = path
             self.edited = False
-            self.editor.setReadOnly(True) 
-            self.editor.set_locked_colors() 
+            self.editor.setReadOnly(True)
+            self.editor.set_locked_colors()
             self.status.setText(f"Loaded: {os.path.basename(path)}")
         except Exception as e:
             self.status.setText(f"Load failed: {e}")
@@ -232,15 +241,11 @@ class MainWindow(QWidget):
         self.editor.setReadOnly(not ro)
         if self.editor.isReadOnly():
             self.edit_btn.setText("Unlock Edit")
-            self.edit_btn.setStyleSheet(
-                "background: #e74c3c; color: white; border-radius: 5px;"
-            )
+            self.edit_btn.setStyleSheet("background: #e74c3c; color: white; border-radius: 5px;")
             self.editor.set_locked_colors()
         else:
             self.edit_btn.setText("Lock Edit")
-            self.edit_btn.setStyleSheet(
-                "background: #27ae60; color: white; border-radius: 5px;"
-            )
+            self.edit_btn.setStyleSheet("background: #27ae60; color: white; border-radius: 5px;")
             self.editor.set_unlocked_colors()
 
     def save_edited(self):
@@ -263,21 +268,21 @@ class MainWindow(QWidget):
         if not self.edited:
             self.edited = True
 
-    def load_last_dir(self):
+    def load_last_dirs(self):
         os.makedirs(USER_FOLDER, exist_ok=True)  
         if os.path.exists(SAVE_PATH):
             try:
                 with open(SAVE_PATH, encoding='utf-8') as f:
                     data = json.load(f)
-                    return data.get('last_dir', '')
+                    return data.get('last_dir', ''), data.get('last_json_dir', '')
             except Exception as e:
-                print(f"Error loading last directory: {e}")
-        return ''  
+                print(f"Error loading last directories: {e}")
+        return '', ''  # Return empty if no saved dirs
 
-    def save_last_dir(self, path):
+    def save_last_dirs(self, folder, json_folder):
         os.makedirs(USER_FOLDER, exist_ok=True)  
         with open(SAVE_PATH, 'w', encoding='utf-8') as f:
-            json.dump({'last_dir': path}, f) 
+            json.dump({'last_dir': folder, 'last_json_dir': json_folder}, f)
 
 
 if __name__ == '__main__':
